@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="es" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Origen de los Materiales</title>
+    <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/refs/heads/main/icono.ico">
+    <style>
+        :root {
+            --blue-900: #0d2340;
+            --blue-600: #1a3a5f;
+            --blue-700: #152e4d;
+            --orange: #f59e42;
+            --white: #ffffff;
+            --panel: #f8f9fa;
+            --correct: #4caf50;
+            --error: #f44336;
+        }
+
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--blue-600), var(--blue-900));
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #gameContainer {
+            background: var(--white);
+            width: 100%;
+            max-width: 800px;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            position: relative;
+            margin-top: 20px;
+        }
+
+        /* --- UI ELEMENTS --- */
+        .header-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .vol-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(var(--orange), #d4832c);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 12px;
+            background: #eee;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--orange);
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        /* --- SCREENS --- */
+        .screen { display: none; text-align: center; }
+        .screen.active { display: block; }
+
+        h1 { color: var(--blue-700); margin-bottom: 0.5rem; }
+        .subtitle { color: #666; font-size: 1.1rem; margin-bottom: 1.5rem; }
+
+        .advice-box {
+            background: #fff5eb;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border-left: 5px solid var(--orange);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .highlight-orange { color: var(--orange); font-weight: bold; }
+        .bold-centered { font-weight: bold; display: block; margin-top: 10px; text-align: center; }
+
+        /* --- BUTTONS --- */
+        .btn {
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .btn-primary { background: var(--orange); color: white; }
+        .btn-primary:hover { transform: scale(1.05); filter: brightness(1.1); box-shadow: 0 5px 15px rgba(245,158,66,0.4); }
+
+        /* --- GRID GAME 1 --- */
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .card {
+            background: var(--panel);
+            border: 2px solid #ddd;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            transition: transform 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .card:hover { transform: translateY(-3px); }
+        .card.selected { background: #e3f2fd; border-color: #2196f3; }
+        .card.matched { background: var(--correct); color: white; border-color: var(--correct); cursor: default; }
+
+        /* --- GAME 2 DROPDOWNS --- */
+        .game2-media { max-width: 100%; height: 200px; object-fit: contain; margin: 20px 0; transition: transform 0.2s; }
+        .game2-media:hover { transform: scale(1.05); }
+
+        .dropdown-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        select {
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid var(--blue-600);
+            background: white;
+            font-size: 1rem;
+            flex: 1;
+            max-width: 200px;
+        }
+
+        /* --- HOF & MODAL --- */
+        .hall-of-fame { background: var(--panel); border-radius: 12px; padding: 1rem; margin-top: 1.5rem; width: 100%; }
+        .hall-of-fame-title { color: var(--blue-700); font-weight: 800; font-size: 1.2rem; text-align: center; margin-bottom: 0.8rem; }
+        .hall-of-fame-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        .hall-of-fame-table th { background: var(--blue-600); color: white; padding: 0.5rem; text-align: left; }
+        .hall-of-fame-table td { padding: 0.4rem 0.5rem; border-bottom: 1px solid #ddd; }
+
+        #submitModal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content { background: white; padding: 2rem; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; }
+
+        /* Animations */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        .shake { animation: shake 0.2s ease-in-out 0s 2; }
+
+        @media (max-width: 600px) {
+            .memory-grid { grid-template-columns: repeat(2, 1fr); }
+            .dropdown-row { flex-direction: row; }
+            select { font-size: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="gameContainer">
+    <div class="header-controls">
+        <button class="vol-btn" id="muteBtn" onclick="toggleMute()">
+            <svg id="speakerIcon" viewBox="0 0 24 24" width="24" height="24" fill="white">
+                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+            </svg>
+        </button>
+    </div>
+
+    <section id="startScreen" class="screen active">
+        <h1>Origen de los materiales</h1>
+        <p class="subtitle">Llamamos materiales a los distintos tipos de materia. Estúdialos.</p>
+        
+        <div class="advice-box">
+            Los materiales pueden ser de <span class="highlight-orange">origen natural</span> si los encontramos en la naturaleza (<span class="highlight-orange">origen animal, vegetal o mineral</span>) o de <span class="highlight-orange">origen artificial</span> si los fabrican las personas a partir de materiales naturales. Aprenderemos a diferenciarlos.
+            <span class="bold-centered">¡Ánimo!</span>
+        </div>
+
+        <button class="btn btn-primary" id="playBtn" onclick="startGame()">Comenzar</button>
+
+        <div class="hall-of-fame" id="hallOfFame">
+            <div class="hall-of-fame-title">🏆 Mejores puntuaciones 🏆</div>
+            <table class="hall-of-fame-table">
+                <thead>
+                    <tr><th>Posición</th><th>Nombre</th><th>Puntos</th><th>Tiempo</th></tr>
+                </thead>
+                <tbody id="hofTableBody">
+                    <tr><td colspan="4" class="hall-of-fame-loading">Cargando puntuaciones...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <img src="https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/refs/heads/main/Ni%C3%B1os.png" style="width:100%; margin-top:20px;">
+    </section>
+
+    <section id="summaryScreen" class="screen">
+        <h1>La materia y sus propiedades generales</h1>
+        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 250px; background: #e3f2fd; padding: 15px; border-radius: 10px; text-align: left; border-left: 8px solid #2196f3;">
+                <h3 style="color:#1565c0">Origen Natural</h3>
+                <ul>
+                    <li><b>Vegetal:</b> madera, algodón, corcho</li>
+                    <li><b>Animal:</b> lana, cuero, seda</li>
+                    <li><b>Mineral:</b> hierro, granito, oro</li>
+                </ul>
+            </div>
+            <div style="flex: 1; min-width: 250px; background: #fff3e0; padding: 15px; border-radius: 10px; text-align: left; border-left: 8px solid #f57c00;">
+                <h3 style="color:#e65100">Origen Artificial</h3>
+                <ul>
+                    <li><b>Plástico:</b> del petróleo</li>
+                    <li><b>Vidrio:</b> de la arena</li>
+                    <li><b>Bronce:</b> cobre y estaño</li>
+                    <li><b>Papel:</b> de la madera</li>
+                </ul>
+            </div>
+        </div>
+        <button class="btn btn-primary" style="margin-top:20px;" onclick="goToLevel1()">Entendido</button>
+    </section>
+
+    <section id="level1Screen" class="screen">
+        <div id="levelIndicator1">Nivel 1/2</div>
+        <div class="progress-container"><div id="progress1" class="progress-bar"></div></div>
+        <h2>Empareja los materiales con sus características</h2>
+        <div class="memory-grid" id="memoryGrid"></div>
+    </section>
+
+    <section id="level2Screen" class="screen notranslate" lang="en" translate="no">
+        <div id="levelIndicator2">Nivel 2/2</div>
+        <div class="progress-container"><div id="progress2" class="progress-bar"></div></div>
+        <h2 style="color:var(--blue-700)">Classify: <span style="color:var(--orange)">Natural</span> or <span style="color:var(--orange)">Artificial</span></h2>
+        
+        <div id="imageDisplay">
+            <img id="currentImage" class="game2-media" src="" alt="Material">
+        </div>
+
+        <div class="dropdown-row">
+            <select id="naturalSelect" onchange="checkGame2('natural')">
+                <option value="" disabled selected>Natural Materials</option>
+                <option value="Animal">Animal</option>
+                <option value="Plant">Plant</option>
+                <option value="Mineral">Mineral</option>
+            </select>
+            <button class="btn btn-primary" style="flex:1; max-width: 180px;" onclick="checkGame2('artificial')">Artificial</button>
+        </div>
+        
+        <div id="game2Controls" style="margin-top:10px;">
+            <button id="btnCheck" class="btn btn-primary" style="display:none">Comprobar</button>
+            <button id="btnContinue" class="btn btn-primary" style="display:none" onclick="nextImageGame2()">Continuar</button>
+        </div>
+    </section>
+
+    <section id="finalScreen" class="screen">
+        <h1 id="finalTitle">Origen de los materiales</h1>
+        <div id="trophy" style="font-size: 4rem; display:none;">🏆</div>
+        <p style="font-size: 1.5rem;">Puntuación: <span id="finalScore" style="font-weight:bold; font-size:2.5rem;">0</span></p>
+        <p id="finalMessage"></p>
+        <p>Tiempo empleado: <span id="finalTimeDisplay"></span></p>
+        <p>Creado por Manuel J. Ventura</p>
+        <img src="https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/refs/heads/main/Siurot.png" style="width:150px; display:block; margin: 10px auto;">
+        <button class="btn btn-primary" onclick="location.reload()">Volver al menú</button>
+    </section>
+</div>
+
+<div id="submitModal">
+    <div class="modal-content">
+        <h3>¡Felicidades!</h3>
+        <p>Tiempo: <span id="modalTime"></span></p>
+        <input type="text" id="playerName" placeholder="Nombre" maxlength="15" style="width:80%; padding:10px; margin:5px;">
+        <input type="text" id="playerSurname" placeholder="Apellidos" maxlength="15" style="width:80%; padding:10px; margin:5px;">
+        <div style="margin-top:20px;">
+            <button id="submitScoreBtn" class="btn btn-primary" onclick="submitScore()">Guardar</button>
+            <button class="btn" style="background:#ccc;" onclick="closeModal()">Descartar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // CONFIGURACIÓN HOF
+    const SHEET_NAME = "Origen";
+    const APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwXaTeZczyTg43AjfomeGov1WvmndAxl30YQkuNCk_2kDbQegsO4amWubjl5DBa0QNDgw/exec";
+
+    // VARIABLES DE ESTADO
+    let audioEnabled = true;
+    let timerInterval;
+    let startTime;
+    let totalAttempts = 0;
+    const MIN_INTERACTIONS = 20;
+    let currentLevel = 1;
+    let isHofLoading = false;
+
+    // ASSETS
+    const sounds = {
+        tap: new Audio("https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/refs/heads/main/Tap.mp3"),
+        correct: new Audio("https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/refs/heads/main/Correcto.mp3"),
+        error: new Audio("https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/refs/heads/main/Error.mp3"),
+        victory: new Audio("https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/refs/heads/main/Termin%C3%A9.mp3"),
+        completed: new Audio("https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/refs/heads/main/Completado.mp3")
+    };
+
+    const game2Data = [
+        { name: "Wool", type: "Animal", origin: "natural", img: "https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/refs/heads/main/C_MEDIO3/Materiales/Lana.png" },
+        { name: "Leather", type: "Animal", origin: "natural", img: "https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/refs/heads/main/C_MEDIO3/Materiales/Cuero.png" },
+        { name: "Silk", type: "Animal", origin: "natural", img: "https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/refs/heads/main/C_MEDIO3/Materiales/Seda.png" },
+        { name: "Cotton", type: "Plant", origin: "natural", img: "https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/refs/heads/main/C_MEDIO3/Materiales/Algodon.png" },
+        { name: "Wood", type: "Plant", origin: "natural", img: "https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/refs/heads/main/C_MEDIO3/Materiales/Madera.png" },
+        { name: "Cork", type: "Plant", origin: "natural", img: "https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/refs/heads/main/C_MEDIO3/Materiales/Corcho.png" },
+        { name: "Iron", type: "Mineral", origin: "natural", img: "https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/refs/heads/main/C_MEDIO3/Materiales/Hierro.png" },
+        { name: "Granite", type: "Mineral", origin: "natural", img: "https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/refs/heads/main/C_MEDIO3/Materiales/Granito.png" },
+        { name: "Gold", type: "Mineral", origin: "natural", img: "https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/refs/heads/main/C_MEDIO3/Materiales/Oro.png" },
+        { name: "Plastic", type: "Artificial", origin: "artificial", img: "https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/refs/heads/main/C_MEDIO3/Materiales/Plastico.png" },
+        { name: "Paper", type: "Artificial", origin: "artificial", img: "https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/refs/heads/main/C_MEDIO3/Materiales/Papel.png" },
+        { name: "Glass", type: "Artificial", origin: "artificial", img: "https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/refs/heads/main/C_MEDIO3/Materiales/VIdrio.png" },
+        { name: "Bronze", type: "Artificial", origin: "artificial", img: "https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/refs/heads/main/C_MEDIO3/Materiales/Bronce.png" }
+    ];
+
+    // --- CORE LOGIC ---
+
+    function playSound(sound) {
+        if (audioEnabled) {
+            sound.currentTime = 0;
+            sound.play().catch(e => console.log("Audio play blocked"));
+        }
+    }
+
+    function toggleMute() {
+        audioEnabled = !audioEnabled;
+        const icon = document.getElementById('speakerIcon');
+        if (audioEnabled) {
+            playSound(sounds.tap);
+            icon.innerHTML = '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>';
+        } else {
+            icon.innerHTML = '<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>';
+        }
+    }
+
+    // --- SPEECH SYNTHESIS (CHROMEOS READY) ---
+    function unlockAudioContext() {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioContext();
+        ctx.resume();
+    }
+
+    function forceInitTTS() {
+        const silent = new SpeechSynthesisUtterance('');
+        window.speechSynthesis.speak(silent);
+    }
+
+    function speakText(text) {
+        window.speechSynthesis.cancel();
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'en-GB';
+        msg.rate = 0.8;
+        
+        const voices = window.speechSynthesis.getVoices();
+        msg.voice = voices.find(v => v.name === 'Google UK English') || 
+                    voices.find(v => v.lang === 'en-GB' && (v.name.includes('Natural') || v.name.includes('Microsoft'))) ||
+                    voices.find(v => v.lang === 'en-GB') || 
+                    voices[0];
+
+        window.speechSynthesis.speak(msg);
+    }
+
+    // --- GAME FLOW ---
+    function startGame() {
+        playSound(sounds.tap);
+        unlockAudioContext();
+        forceInitTTS();
+        showScreen('summaryScreen');
+        startTime = Date.now();
+        startTimer();
+    }
+
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            const now = Date.now();
+            const diff = now - startTime;
+            // Cronómetro se usa internamente
+        }, 100);
+    }
+
+    // --- LEVEL 1: MEMORY ---
+    const level1Pairs = [
+        {a: "Materiales de origen natural", b: "Los encontramos en la naturaleza"},
+        {a: "Materiales de origen artificial", b: "Son fabricados por las personas"},
+        {a: "Natural - animal", b: "Lana, cuero, seda…"},
+        {a: "Natural - vegetal", b: "Algodón, madera, corcho…"},
+        {a: "Natural - mineral", b: "Hierro, granito, cobre…"},
+        {a: "Plástico", b: "Material artificial que obtenemos del petróleo"},
+        {a: "Bronce", b: "Material artificial procedente de fundir cobre y estaño"}
+    ];
+
+    let selectedCards = [];
+    let matchesFound = 0;
+
+    function goToLevel1() {
+        showScreen('level1Screen');
+        const grid = document.getElementById('memoryGrid');
+        const elements = [];
+        level1Pairs.forEach((p, idx) => {
+            elements.push({text: p.a, id: idx});
+            elements.push({text: p.b, id: idx});
+        });
+        elements.sort(() => Math.random() - 0.5);
+
+        elements.forEach(el => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerText = el.text;
+            card.onclick = () => selectCard(card, el.id);
+            grid.appendChild(card);
+        });
+    }
+
+    function selectCard(card, id) {
+        if (card.classList.contains('matched') || selectedCards.includes(card)) return;
+        
+        playSound(sounds.tap);
+        card.classList.add('selected');
+        selectedCards.push({card, id});
+
+        if (selectedCards.length === 2) {
+            totalAttempts++;
+            if (selectedCards[0].id === selectedCards[1].id) {
+                selectedCards.forEach(s => {
+                    s.card.classList.remove('selected');
+                    s.card.classList.add('matched');
+                });
+                playSound(sounds.correct);
+                matchesFound++;
+                updateProgress(1, (matchesFound / level1Pairs.length) * 100);
+                if (matchesFound === level1Pairs.length) setTimeout(goToLevel2, 1000);
+            } else {
+                selectedCards.forEach(s => s.card.classList.add('shake'));
+                playSound(sounds.error);
+                setTimeout(() => {
+                    selectedCards.forEach(s => {
+                        s.card.classList.remove('selected', 'shake');
+                    });
+                    selectedCards = [];
+                }, 400);
+                return;
+            }
+            selectedCards = [];
+        }
+    }
+
+    // --- LEVEL 2: CLASSIFY (ENGLISH) ---
+    let g2Index = 0;
+    let shuffledG2 = [];
+
+    function goToLevel2() {
+        currentLevel = 2;
+        shuffledG2 = [...game2Data].sort(() => Math.random() - 0.5);
+        showScreen('level2Screen');
+        updateGame2Image();
+    }
+
+    function updateGame2Image() {
+        const item = shuffledG2[g2Index];
+        document.getElementById('currentImage').src = item.img;
+        document.getElementById('naturalSelect').value = "";
+        speakText(item.name);
+    }
+
+    function checkGame2(originType) {
+        window.speechSynthesis.cancel();
+        const item = shuffledG2[g2Index];
+        const select = document.getElementById('naturalSelect');
+        totalAttempts++;
+
+        let isCorrect = false;
+        if (originType === 'artificial' && item.type === 'Artificial') isCorrect = true;
+        if (originType === 'natural' && select.value === item.type) isCorrect = true;
+
+        if (isCorrect) {
+            playSound(sounds.correct);
+            updateProgress(2, ((g2Index + 1) / shuffledG2.length) * 100);
+            g2Index++;
+            if (g2Index < shuffledG2.length) {
+                setTimeout(updateGame2Image, 400);
+            } else {
+                setTimeout(finishGame, 800);
+            }
+        } else {
+            playSound(sounds.error);
+            document.getElementById('gameContainer').classList.add('shake');
+            setTimeout(() => document.getElementById('gameContainer').classList.remove('shake'), 400);
+        }
+    }
+
+    function updateProgress(lvl, val) {
+        document.getElementById(`progress${lvl}`).style.width = val + '%';
+    }
+
+    // --- FINAL & SCORING ---
+    function finishGame() {
+        clearInterval(timerInterval);
+        window.speechSynthesis.cancel();
+        const finalTime = (Date.now() - startTime) / 1000;
+        const score = calculateScore();
+        
+        showScreen('finalScreen');
+        document.getElementById('finalScore').innerText = score;
+        document.getElementById('finalTimeDisplay').innerText = formatTime(finalTime);
+
+        if (score === 100) {
+            document.getElementById('trophy').style.display = 'block';
+            document.getElementById('finalMessage').innerText = "¡Enhorabuena, puntuación máxima!";
+            playSound(sounds.victory);
+        } else {
+            document.getElementById('finalMessage').innerText = "¡Buen trabajo! Sigue practicando";
+            playSound(sounds.completed);
+        }
+
+        setTimeout(() => showSubmitModal(finalTime, score), 1000);
+    }
+
+    function calculateScore() {
+        const score = 100 - ((totalAttempts - MIN_INTERACTIONS) * (100 / MIN_INTERACTIONS));
+        return Math.max(0, Math.round(score));
+    }
+
+    function formatTime(seconds) {
+        const m = Math.floor(seconds / 60);
+        const s = Math.floor(seconds % 60);
+        const d = Math.floor((seconds % 1) * 10);
+        return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${d}`;
+    }
+
+    // --- HOF LOGIC ---
+    async function loadHallOfFame() {
+        if (isHofLoading) return;
+        isHofLoading = true;
+        try {
+            const resp = await fetch(`${APP_SCRIPT_URL}?action=read&sheet=${SHEET_NAME}`);
+            const data = await resp.json();
+            const tbody = document.getElementById('hofTableBody');
+            tbody.innerHTML = "";
+
+            if (data.status === 'success' && data.data.length > 0) {
+                data.data.slice(0, 10).forEach((row, i) => {
+                    tbody.innerHTML += `<tr>
+                        <td>${i+1}º</td>
+                        <td>${row.Nombre} ${row.Apellidos}</td>
+                        <td>${row.Puntuacion}</td>
+                        <td>${formatTime(row.Tiempo)}</td>
+                    </tr>`;
+                });
+            } else {
+                tbody.innerHTML = '<tr><td colspan="4" class="hall-of-fame-loading">¡Sé el primero en guardar tu puntuación!</td></tr>';
+            }
+        } catch (e) {
+            document.getElementById('hofTableBody').innerHTML = '<tr><td colspan="4" class="hall-of-fame-error">Error conectando con el Hall de la Fama</td></tr>';
+        } finally {
+            isHofLoading = false;
+        }
+    }
+
+    function showSubmitModal(time, score) {
+        window.currentScoreData = { time, score };
+        document.getElementById('modalTime').innerText = formatTime(time);
+        document.getElementById('submitModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('submitModal').style.display = 'none';
+    }
+
+    async function submitScore() {
+        const name = document.getElementById('playerName').value.trim();
+        const surname = document.getElementById('playerSurname').value.trim();
+        const btn = document.getElementById('submitScoreBtn');
+
+        if (!name || !surname) {
+            alert("Por favor, rellena nombre y apellido");
+            return;
+        }
+
+        playSound(sounds.tap);
+        btn.innerText = "Enviando...";
+        btn.disabled = true;
+
+        const payload = {
+            sheet: SHEET_NAME,
+            action: "write",
+            data: {
+                name: name,
+                surname: surname,
+                score: window.currentScoreData.score,
+                time: window.currentScoreData.time
+            }
+        };
+
+        try {
+            await fetch(APP_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload)
+            });
+            setTimeout(() => {
+                closeModal();
+                loadHallOfFame();
+            }, 1000);
+        } catch (e) {
+            alert("Error al guardar");
+            btn.innerText = "Guardar";
+            btn.disabled = false;
+        }
+    }
+
+    // Inicialización
+    window.onload = () => {
+        loadHallOfFame();
+        // Cargar voces
+        window.speechSynthesis.onvoiceschanged = () => {};
+    };
+
+    // Enter en modal
+    document.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && document.getElementById('submitModal').style.display === 'flex') {
+            submitScore();
+        }
+    });
+
+</script>
+</body>
+</html>
