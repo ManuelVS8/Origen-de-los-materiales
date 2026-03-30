@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <!-- saved from url=(0053)https://manuelvs8.github.io/Origen-de-los-materiales/ -->
 <html lang="es" translate="no"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     
@@ -84,13 +83,6 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
-        }
-        .theory-main-title {
-            text-align: center;
-            color: var(--blue-dark);
-            font-size: 1.4rem;
-            font-weight: 800;
-            margin-bottom: 5px;
         }
         .theory-intro {
             text-align: center;
@@ -219,10 +211,8 @@
             max-height: 280px;
             object-fit: contain;
             border-radius: 8px;
-            transition: transform 0.2s ease;
             box-shadow: 0 8px 20px rgba(0,0,0,0.15);
         }
-        .image-display img:hover { transform: scale(1.03); }
 
         /* Word display area */
         .word-display-area {
@@ -300,7 +290,7 @@
             border: 2px solid var(--blue-600);
             border-radius: 10px;
             cursor: pointer;
-            transition: border-color 0.2s, color 0.2s;
+            transition: border-color 0.2s, color 0.2s, font-weight 0.2s;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -313,6 +303,10 @@
             border-color: var(--orange);
             font-weight: 700;
         }
+        .custom-select__trigger.selected-highlight::after {
+            border-right-color: var(--orange);
+            border-bottom-color: var(--orange);
+        }
         .custom-select__trigger::after {
             content: '';
             width: 10px; height: 10px;
@@ -320,7 +314,7 @@
             border-bottom: 2px solid var(--blue-700);
             transform: rotate(45deg);
             margin-top: -5px;
-            transition: transform 0.2s;
+            transition: transform 0.2s, border-color 0.2s;
             flex-shrink: 0;
         }
         
@@ -380,15 +374,25 @@
         }
         
         .custom-select__trigger.correct {
-            border-color: var(--green);
-            background-color: rgba(46, 204, 113, 0.1);
-            color: var(--green);
+            border-color: var(--green) !important;
+            background-color: rgba(46, 204, 113, 0.3) !important;
+            color: #1a8c4e !important;
+            font-weight: 700 !important;
+            box-shadow: 0 0 16px rgba(46, 204, 113, 0.45);
+        }
+        .custom-select__trigger.correct::after {
+            border-right-color: #1a8c4e !important;
+            border-bottom-color: #1a8c4e !important;
         }
         .custom-select__trigger.wrong {
-            border-color: var(--red);
-            background-color: rgba(231, 76, 60, 0.1);
-            color: var(--red);
-            animation: shake 0.3s;
+            border-color: var(--red) !important;
+            background-color: rgba(231, 76, 60, 0.1) !important;
+            color: var(--red) !important;
+            animation: shake 0.3s ease-in-out;
+        }
+        .custom-select__trigger.wrong::after {
+            border-right-color: var(--red) !important;
+            border-bottom-color: var(--red) !important;
         }
         
         @keyframes shake {
@@ -499,10 +503,9 @@
     <!-- Pantalla Resumen -->
     <section class="screen" id="summaryScreen">
         <header>
-            <h1>La materia y sus propiedades generales</h1>
+            <h1>Origen de los materiales</h1>
         </header>
         <div class="theory-content">
-            <div class="theory-main-title">Origen de los materiales</div>
             <p class="theory-intro">Llamamos materiales a los distintos tipos de materia. Estos materiales pueden ser de <strong>origen natural</strong> o <strong>artificial</strong>:</p>
             
             <div class="change-block natural">
@@ -622,7 +625,6 @@
 
             <div class="action-area">
                 <button class="btn btn-primary" id="checkBtn">Comprobar</button>
-                <button class="btn btn-primary" id="continueBtn" style="display:none;">Continuar</button>
             </div>
         </div>
     </section>
@@ -641,7 +643,7 @@
             <div id="finalMsg" class="subtitle"></div>
             <button class="btn btn-primary" id="backToMenuBtn" style="background:var(--orange);">Volver al menú</button>
             <span class="credit">Creado por Manuel J. Ventura</span>
-            <img class="school-logo" src="./Origen de los materiales_files/Siurot.png" alt="School logo">
+            <img class="school-logo" src="https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/refs/heads/main/Siurot.png" alt="School logo">
         </div>
     </section>
 </div>
@@ -664,7 +666,7 @@
     /* --- 1. CONFIGURACIÓN DE VARIABLES GLOBALES (CRÍTICO) --- */
     const SHEET_NAME = "Origen";
     const APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwXaTeZczyTg43AjfomeGov1WvmndAxl30YQkuNCk_2kDbQegsO4amWubjl5DBa0QNDgw/exec";
-    const MIN_INTERACTIONS = 20; // 7 parejas + 13 imágenes
+    const MIN_INTERACTIONS = 20;
     
     let soundEnabled = true;
     let audioUnlocked = false;
@@ -703,7 +705,6 @@
             if (audioContext.state === 'suspended') {
                 audioContext.resume();
             }
-            // Create silent buffer to unlock audio
             const buffer = audioContext.createBuffer(1, 1, 22050);
             const source = audioContext.createBufferSource();
             source.buffer = buffer;
@@ -723,7 +724,6 @@
                 resolve();
                 return;
             }
-            // Force initialization with empty utterance
             const utterance = new SpeechSynthesisUtterance('');
             utterance.volume = 0;
             window.speechSynthesis.speak(utterance);
@@ -744,7 +744,6 @@
         const voices = window.speechSynthesis.getVoices();
         let bestVoice = null;
         
-        // Priority 1: Google UK English
         for (let voice of voices) {
             if (voice.name === 'Google UK English') {
                 bestVoice = voice;
@@ -752,7 +751,6 @@
             }
         }
         
-        // Priority 2: Microsoft or Natural en-GB
         if (!bestVoice) {
             for (let voice of voices) {
                 if (voice.lang === 'en-GB' && (voice.name.includes('Microsoft') || voice.name.includes('Natural'))) {
@@ -762,7 +760,6 @@
             }
         }
         
-        // Priority 3: Any en-GB
         if (!bestVoice) {
             for (let voice of voices) {
                 if (voice.lang === 'en-GB') {
@@ -953,19 +950,15 @@
 
     /* --- JUEGO 2: IDENTIFICAR --- */
     const game2Data = [
-        // Natural - Animal
         { type: 'Animal', img: 'https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/refs/heads/main/C_MEDIO3/Materiales/Lana.png', word: 'Wool' },
         { type: 'Animal', img: 'https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/refs/heads/main/C_MEDIO3/Materiales/Cuero.png', word: 'Leather' },
         { type: 'Animal', img: 'https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/refs/heads/main/C_MEDIO3/Materiales/Seda.png', word: 'Silk' },
-        // Natural - Plant
         { type: 'Plant', img: 'https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/refs/heads/main/C_MEDIO3/Materiales/Algodon.png', word: 'Cotton' },
         { type: 'Plant', img: 'https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/refs/heads/main/C_MEDIO3/Materiales/Madera.png', word: 'Wood' },
         { type: 'Plant', img: 'https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/refs/heads/main/C_MEDIO3/Materiales/Corcho.png', word: 'Cork' },
-        // Natural - Mineral
         { type: 'Mineral', img: 'https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/refs/heads/main/C_MEDIO3/Materiales/Hierro.png', word: 'Iron' },
         { type: 'Mineral', img: 'https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/refs/heads/main/C_MEDIO3/Materiales/Granito.png', word: 'Granite' },
         { type: 'Mineral', img: 'https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/refs/heads/main/C_MEDIO3/Materiales/Oro.png', word: 'Gold' },
-        // Artificial
         { type: 'Artificial', img: 'https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/refs/heads/main/C_MEDIO3/Materiales/Plastico.png', word: 'Plastic' },
         { type: 'Artificial', img: 'https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/refs/heads/main/C_MEDIO3/Materiales/Papel.png', word: 'Paper' },
         { type: 'Artificial', img: 'https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/refs/heads/main/C_MEDIO3/Materiales/VIdrio.png', word: 'Glass' },
@@ -975,6 +968,7 @@
     let game2Items = [];
     let currentIndex2 = 0;
     let currentSelection = null;
+    let game2Locked = false;
     const totalItems2 = 13;
     
     const selectNatural = document.getElementById('selectNatural');
@@ -986,7 +980,6 @@
     const materialWord = document.getElementById('materialWord');
     const playWordBtn = document.getElementById('playWordBtn');
     const checkBtn = document.getElementById('checkBtn');
-    const continueBtn = document.getElementById('continueBtn');
 
     // Play word button
     playWordBtn.addEventListener('click', (e) => {
@@ -999,20 +992,20 @@
 
     // Dropdown Logic for Natural
     triggerNatural.addEventListener('click', () => {
+        if (game2Locked) return;
         selectNatural.classList.toggle('open');
         playSound('tap');
     });
     
     // Logic for Artificial (no dropdown, just selection)
     triggerArtificial.addEventListener('click', () => {
+        if (game2Locked) return;
         window.speechSynthesis.cancel();
         playSound('tap');
         
-        // Reset validation colors
         triggerNatural.classList.remove('correct', 'wrong');
         triggerArtificial.classList.remove('correct', 'wrong');
         
-        // Reset highlights
         triggerNatural.classList.remove('selected-highlight');
         triggerArtificial.classList.add('selected-highlight');
         
@@ -1030,12 +1023,12 @@
     selectNatural.querySelectorAll('.custom-option').forEach(option => {
         option.addEventListener('click', function(e) {
             e.stopPropagation();
+            if (game2Locked) return;
             window.speechSynthesis.cancel();
             playSound('tap');
             
             selectNatural.classList.remove('open');
             
-            // Reset highlights
             triggerNatural.classList.add('selected-highlight');
             triggerArtificial.classList.remove('selected-highlight');
             
@@ -1044,7 +1037,6 @@
             selectArtificial.classList.remove('selected');
             triggerArtificial.innerHTML = '<span>Artificial materials</span>';
             
-            // Reset validation colors
             triggerNatural.classList.remove('correct', 'wrong');
             triggerArtificial.classList.remove('correct', 'wrong');
             
@@ -1053,11 +1045,21 @@
     });
 
     checkBtn.addEventListener('click', checkAnswerGame2);
-    continueBtn.addEventListener('click', nextLevelGame2);
+
+    function resetGame2Dropdowns() {
+        triggerNatural.innerHTML = '<span>Natural materials</span>';
+        triggerArtificial.innerHTML = '<span>Artificial materials</span>';
+        selectNatural.classList.remove('selected');
+        selectArtificial.classList.remove('selected');
+        triggerNatural.classList.remove('correct', 'wrong', 'selected-highlight');
+        triggerArtificial.classList.remove('correct', 'wrong', 'selected-highlight');
+        currentSelection = null;
+    }
 
     function initGame2() {
         showScreen('game2Screen');
         currentIndex2 = 0;
+        game2Locked = false;
         updateProgress('progressFillGame2', 0);
         game2Items = shuffle([...game2Data]);
         loadQuestionGame2();
@@ -1068,56 +1070,51 @@
         game2Img.src = item.img;
         materialWord.textContent = item.word;
         
-        // Reset Selects
-        triggerNatural.innerHTML = '<span>Natural materials</span>';
-        triggerArtificial.innerHTML = '<span>Artificial materials</span>';
-        selectNatural.classList.remove('selected');
-        selectArtificial.classList.remove('selected');
-        triggerNatural.classList.remove('correct', 'wrong', 'selected-highlight');
-        triggerArtificial.classList.remove('correct', 'wrong', 'selected-highlight');
+        resetGame2Dropdowns();
+        game2Locked = false;
         
-        currentSelection = null;
-        checkBtn.style.display = 'inline-flex';
-        continueBtn.style.display = 'none';
-        
-        // Speak the word automatically
         setTimeout(() => {
             speakText(item.word);
         }, 300);
     }
 
     function checkAnswerGame2() {
-        if (!currentSelection) {
+        if (!currentSelection || game2Locked) {
             return;
         }
 
         window.speechSynthesis.cancel();
-        
-        const correctType = game2Items[currentIndex2].type;
         totalAttempts++;
+
+        const correctType = game2Items[currentIndex2].type;
 
         if (currentSelection === correctType) {
             playSound('correct');
+            game2Locked = true;
             
             const correctTrigger = ['Animal', 'Plant', 'Mineral'].includes(currentSelection) 
                 ? triggerNatural : triggerArtificial;
             correctTrigger.classList.add('correct');
             
-            setTimeout(() => { nextLevelGame2(); }, 250);
+            setTimeout(() => { nextLevelGame2(); }, 700);
             
         } else {
             playSound('error');
+            game2Locked = true;
             
             const wrongTrigger = ['Animal', 'Plant', 'Mineral'].includes(currentSelection) 
                 ? triggerNatural : triggerArtificial;
             wrongTrigger.classList.add('wrong');
             
-            checkBtn.style.display = 'none';
-            continueBtn.style.display = 'inline-flex';
+            setTimeout(() => {
+                resetGame2Dropdowns();
+                game2Locked = false;
+            }, 700);
         }
     }
 
     function nextLevelGame2() {
+        window.speechSynthesis.cancel();
         currentIndex2++;
         updateProgress('progressFillGame2', (currentIndex2 / totalItems2) * 100);
 
