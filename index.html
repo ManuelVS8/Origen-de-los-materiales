@@ -1,3 +1,4 @@
+<!-- saved from url=(0053)https://manuelvs8.github.io/Origen-de-los-materiales/ -->
 <html lang="es" translate="no"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -317,6 +318,11 @@
             flex-shrink: 0;
         }
         
+        /* Ocultar flecha desplegable en la lista artificial (no tiene opciones) */
+        #selectArtificial .custom-select__trigger::after {
+            display: none;
+        }
+
         /* Drop UP */
         .custom-options {
             position: absolute;
